@@ -64,7 +64,7 @@ header p {
     opacity: 0.85;
 }
 
-/* ---------- TOGGLE DARK MODE ---------- */
+/* ---------- BUTTONS ---------- */
 .toggle-btn {
     position: absolute;
     top: 20px;
@@ -73,6 +73,19 @@ header p {
     color: #fff;
     border: none;
     padding: 10px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.lang-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: #444;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
     border-radius: 20px;
     cursor: pointer;
     font-size: 13px;
@@ -150,50 +163,59 @@ footer {
 
 <body class="fade-in">
 
+<!-- LANGUAGE BUTTON -->
+<button class="lang-btn" onclick="toggleLang()">🌐 EN/ID</button>
+
+<!-- DARK MODE BUTTON -->
 <button class="toggle-btn" onclick="toggleTheme()">🌙 Dark Mode</button>
 
 <header>
     <img src="https://avatars.githubusercontent.com/u/10204241042" alt="Mauritz Avatar">
     <h1>Mauritz BG</h1>
-    <p>Automation • OSS/BSS • System Integration • Solution Architect</p>
+    <p data-i18n="subtitle">Automation • Cloud • Ericsson OSS/NMS • System Integration • Telecom Solution Architect</p>
 </header>
 
 <div class="container">
 
     <!-- SKILLS -->
-    <h2>Skills</h2>
+    <h2 data-i18n="skills_title">Skills</h2>
     <div>
-        <span class="skill-badge">OSS/BSS Architecture</span>
-        <span class="skill-badge">Automation</span>
-        <span class="skill-badge">Scripting (AHK, YAML, Python)</span>
+        <span class="skill-badge">Ericsson OSS/NMS Architecture</span>
+        <span class="skill-badge" data-i18n="automation">Automation</span>
+        <span class="skill-badge" data-i18n="cloud">Cloud</span>
+        <span class="skill-badge" data-i18n="scripting">Scripting (AHK, YAML, Python, C/C++, any)</span>
         <span class="skill-badge">CI/CD</span>
         <span class="skill-badge">Cloud & NFV 5G</span>
-        <span class="skill-badge">System Integration</span>
+        <span class="skill-badge" data-i18n="sysint">System Integration</span>
         <span class="skill-badge">API Design</span>
         <span class="skill-badge">Telecom NMS/ENM/ENIQ</span>
     </div>
 
     <!-- EXPERIENCE -->
-    <h2>Experience</h2>
-    <p>
-        Solution Architect dengan pengalaman 18+ tahun di OSS/BSS/NMS,  
+    <h2 data-i18n="exp_title">Experience</h2>
+    <p data-i18n="exp_body">
+        Solution Architect dengan pengalaman 18+ tahun di OSS/NMS,  
         modernisasi OSS untuk operator besar di Indonesia,  
         integrasi multi-vendor (Ericsson, Huawei, Cisco, Juniper),  
         dan automation scripting untuk operasional harian.
     </p>
 
     <!-- PROJECTS -->
-    <h2>Projects</h2>
+    <h2 data-i18n="projects_title">Projects</h2>
     <div class="project-list">
 
         <div class="card">
             <a href="projects/AutoWarANTAM.html">AutoWarANTAM.ahk</a>
-            <p>Script AutoHotkey otomatis untuk war antrian butik ANTAM.</p>
+            <p data-i18n="proj1">
+                Script AutoHotkey otomatis untuk war antrian butik ANTAM.
+            </p>
         </div>
 
         <div class="card">
             <a href="projects/freerdp.html">FreeRDP.yaml</a>
-            <p>Script YAML untuk mendapatkan RDP gratis dari GitHub Runner.</p>
+            <p data-i18n="proj2">
+                Script YAML untuk mendapatkan RDP gratis dari GitHub Runner.
+            </p>
         </div>
 
     </div>
@@ -216,6 +238,58 @@ function toggleTheme() {
     const newTheme = current === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", newTheme);
 }
+</script>
+
+<!-- LANG DICTIONARY -->
+<script>
+const langData = {
+    id: {
+        subtitle: "Automation • Cloud • Ericsson OSS/NMS • System Integration • Telecom Solution Architect",
+        skills_title: "Skills",
+        automation: "Automation",
+        automation: "Cloud",
+        scripting: "Scripting (AHK, YAML, Python)",
+        sysint: "Integrasi Sistem",
+        exp_title: "Experience",
+        exp_body: "Solution Architect dengan pengalaman 18+ tahun di OSS/BSS/NMS, modernisasi OSS untuk operator besar di Indonesia, integrasi multi-vendor (Ericsson, Huawei, Cisco, Juniper), dan automation scripting untuk operasional harian.",
+        projects_title: "Projects",
+        proj1: "Script AutoHotkey otomatis untuk war antrian butik ANTAM.",
+        proj2: "Script YAML untuk mendapatkan RDP gratis dari GitHub Runner."
+    },
+    en: {
+        subtitle: "Automation • Cloud • Ericsson OSS/NMSS • System Integration • Telecom Solution Architect",
+        skills_title: "Skills",
+        automation: "Automation",
+        automation: "Cloud",
+        scripting: "Scripting (AHK, YAML, Python)",
+        sysint: "System Integration",
+        exp_title: "Experience",
+        exp_body: "Solution Architect with 18+ years experience in OSS/NMS, leading OSS modernization for major Indonesian operators, multi-vendor integration (Ericsson, Huawei, Cisco, Juniper), and automation scripting for daily operations.",
+        projects_title: "Projects",
+        proj1: "AutoHotkey script to automate queueing for ANTAM boutique.",
+        proj2: "YAML script to obtain free RDP from GitHub Runner."
+    }
+};
+
+function applyLang(lang) {
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        el.innerHTML = langData[lang][key];
+    });
+}
+
+function toggleLang() {
+    let current = localStorage.getItem("lang") || "id";
+    let newLang = current === "id" ? "en" : "id";
+    localStorage.setItem("lang", newLang);
+    applyLang(newLang);
+}
+
+// Load saved language
+document.addEventListener("DOMContentLoaded", () => {
+    let saved = localStorage.getItem("lang") || "id";
+    applyLang(saved);
+});
 </script>
 
 </body>
