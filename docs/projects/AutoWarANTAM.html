@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AutoWarANTAM.ahk - Portfolio Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            line-height: 1.6;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        h1 {
+            color: #333;
+        }
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>AutoWarANTAM.ahk</h1>
+    <p>Script AHKv1 Auto War Antrian Butik Antam</p>
+
+    <h3>Source Code</h3>
+    <pre><code>
+#NoEnv
+SetWorkingDir %A_ScriptDir%
+SendMode Input
+#SingleInstance Force
+SetTitleMatchMode 2
+#WinActivateForce
+SetControlDelay 1
+SetWinDelay 0
+SetKeyDelay -1
+SetMouseDelay -1
+SetBatchLines -1
+CoordMode, Mouse, Window
+CoordMode, Pixel, Window
+
+; ============================
+; Parameter Target Butik
+; ============================
+Pilihan := "bogor"
+; Pilihan Butik::
+; bekasi
+; bogor
+; antam
+; dipta
+; setiabudi
+Autologins := true
+
+; ============================
+; Parameter target klik antrean
+; ============================
+targetHour   := 20 
+targetMinute := 0 
+targetSecond := 0 
+interval_refresh := 45000  
+
+; -----------------------------
+butik := {}
+butik.edge := {}
+butik.brave := {}
+butik.chrome := {}
+
+butik.edge.bekasi := { waktux:150, waktuy:735, highlight:3, captchax:180, captchay:800 }
+butik.edge.bogor :=  { waktux:150, waktuy:775, highlight:5, captchax:180, captchay:870 }
+butik.edge.antam :=  { waktux:150, waktuy:755, highlight:8, captchax:180, captchay:840 }
+butik.edge.dipta :=  { waktux:150, waktuy:855, highlight:9, captchax:180, captchay:870 }
+butik.edge.setiabudi := { waktux:150, waktuy:850, highlight:17, captchax:180, captchay:870 }
+; -----------------
+butik.brave.bekasi := { waktux:150, waktuy:735, highlight:3, captchax:180, captchay:800 }
+butik.brave.bogor :=  { waktux:150, waktuy:775, highlight:5, captchax:180, captchay:870 }
+butik.brave.antam :=  { waktux:150, waktuy:755, highlight:8, captchax:180, captchay:840 }
+butik.brave.dipta :=  { waktux:150, waktuy:855, highlight:9, captchax:180, captchay:870 }
+butik.brave.setiabudi := { waktux:150, waktuy:850, highlight:17, captchax:180, captchay:870 }
+;----------------
+butik.chrome.bekasi := { waktux:150, waktuy:740, highlight:3, captchax:180, captchay:800 }
+butik.chrome.bogor :=  { waktux:150, waktuy:780, highlight:5, captchax:180, captchay:880 }
+butik.chrome.antam :=  { waktux:150, waktuy:760, highlight:8, captchax:180, captchay:840 }
+butik.chrome.dipta :=  { waktux:150, waktuy:860, highlight:9, captchax:180, captchay:870 }
+butik.chrome.setiabudi := { waktux:150, waktuy:840, highlight:17, captchax:180, captchay:880 }
+
+; ============================
+; Hitung captcha time Antrean
+; ============================
+captchaOffset := 58   ; captcha klik 58 detik sebelum target
+captchaSecond := targetSecond - captchaOffset
+captchaMinute := targetMinute
+captchaHour   := targetHour
+if (captchaSecond < 0) {
+    captchaSecond += 60
+    captchaMinute -= 1
+    if (captchaMinute < 0) {
+        captchaMinute := 59
+        captchaHour   -= 1
+        if (captchaHour < 0) {
+            captchaHour := 23
+        }
+    }
+}
+; ============================
+; Hitung stop refresh (1 menit sebelum target)
+; ============================
+cutoffHour   := targetHour
+cutoffMinute := targetMinute - 1
+if (cutoffMinute < 0) {
+    cutoffMinute := 59
+    cutoffHour   := targetHour - 1
+    if (cutoffHour < 0) {
+        cutoffHour := 23
+    }
+}
+
+
+Edgelock     := false
+Bravelock    := false
+Chromelock   := false
+
+; ========== TIMER ==========
+SetTimer, WAR, 100
+SetTimer, AutoClick, %interval_refresh%
+; ---------------------------
+
+AutoLogin:
+    if (Autologins) {
+        LoginStageOne()
+        LoginStageTwo()
+    }
+
+AutoClick:
+    if (A_Hour < cutoffHour || (A_Hour = cutoffHour && A_Min < cutoffMinute)) {
+       ScanButik()
+       ;AutoClickEdge()
+       ;AutoClickBrave()
+       ;AutoClickChrome()
+    }
+F8::ExitApp
+
+
+return
+;ExitApp   ; langsung quit setelah selesai
+
+
+ScanButik() {
+    global butik
+
+    ; pastikan sudah login
+    LoginStageOne()
+    LoginStageTwo()
+
+    hasil := ""
+
+    for lokasi, data in butik.edge {
+        h := data.highlight
+        Send, % "{Down " h "}{Enter}"
+        Sleep, 1000
+
+        ; copy teks halaman
+        Send, ^a
+        Sleep, 200
+        Send, ^c
+        ClipWait, 2
+        teks := Clipboard
+
+        ; ekstrak jam buka
+        if RegExMatch(teks, "Pukul\s+(\d{2}):(\d{2})", jam) {
+            jamMulai := jam1 ":" jam2
+            hasil .= lokasi . " -> " . jamMulai . "`n"
+        } else {
+            hasil .= lokasi . " -> (jam tidak ditemukan)`n"
+        }
+    }
+
+    MsgBox, % "Hasil Scan Butik:`n" hasil
+}
+
+AutoClickEdge() {
+    if (Edgelock) {
+        return
+    }
+    global butik, Pilihan
+    ; Koordinat tombol (sesuaikan)
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe msedge.exe
+    FormatTime, niceTime, %A_Now%, HH:mm:ss
+    Tooltip, Auto Click Edge: %niceTime%
+    ; hard reload
+    Send, ^+r
+    Sleep, 1000
+    ; Klik Pilih Waktu Kedatangan
+    ; Bekasi      150, 715
+    ; Bogor       150, 755
+    ; Gd Antam    150, 755
+    ; Graha Dipta 150, 830
+    ; Setiabudi   150, 850
+
+    x := butik.edge[Pilihan].waktux
+    y := butik.edge[Pilihan].waktuy
+    Tooltip, Edge pilih waktu at %x%, %y%
+    Click, %x%, %y%
+    Sleep, 1000
+
+    ; Panah bawah sekali + Enter
+    Send, {Down 1}{Enter}
+    Sleep, 1000
+
+    return
+}
+AutoClickBrave() {
+    if (Bravelock) {
+        return
+    }
+    global butik, Pilihan
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe brave.exe
+    FormatTime, niceTime, %A_Now%, HH:mm:ss
+    Tooltip, Auto Click Brave: %niceTime%
+    ; hard reload
+    Send, ^+r
+    Sleep, 1000
+    ; Klik Pilih Waktu Kedatangan
+    ; Bekasi      150, 715
+    ; Bogor       150, 755
+    ; Gd Antam    150, 755
+    ; Graha Dipta 150, 830
+    ; Setiabudi   150, 850
+
+    x := butik.brave[Pilihan].waktux
+    y := butik.brave[Pilihan].waktuy
+    Tooltip, Brave pilih waktu at %x%, %y%
+    Click, %x%, %y%
+    Sleep, 1000
+    Send, {Down 1}{Enter}
+    Sleep, 1000
+
+    return
+}
+AutoClickChrome() {
+    if (Chromelock) {
+        return
+    }
+    global butik, Pilihan
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe chrome.exe
+    FormatTime, niceTime, %A_Now%, HH:mm:ss
+    Tooltip, Auto Click Chrome: %niceTime%
+    ; hard reload
+    Send, ^+r
+    Sleep, 1000
+    ; Klik Pilih Waktu Kedatangan
+    ; Bekasi      150, 720
+    ; Bogor       150, 760
+    ; Gd Antam    150, 760
+    ; Graha Dipta 150, 835
+    ; Setiabudi   150, 860
+
+    x := butik.chrome[Pilihan].waktux
+    y := butik.chrome[Pilihan].waktuy
+    Tooltip, Chrome pilih waktu at %x%, %y%
+    Click, %x%, %y%
+    Sleep, 1000
+    ; Panah bawah sekali + Enter
+    Send, {Down 1}{Enter}
+    Sleep, 1000
+
+    return
+}
+
+
+LoginStageOne() {
+    global Edgelock     
+    global Bravelock    
+    global Chromelock   
+    Edgelock     := true
+    Bravelock    := true
+    Chromelock   := true
+
+    ;--------------
+    ; Login Antrean EDGE
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe msedge.exe
+    WinMove, ahk_class Chrome_WidgetWin_1 ahk_exe msedge.exe,, 0, 0, 580, 1035
+    Send, ^l             
+    Sleep, 1000
+    Send, https://antrean.logammulia.com/login {Enter}
+    Sleep, 2000
+
+    ; reload
+    Send, {F5}
+    Sleep, 1000
+
+    ScrollToEnd()
+
+    ; Click Username
+    Click, 60, 384
+    Sleep, 1000
+
+    ; Select Autofill
+    Click, 160, 450
+    Sleep, 1000
+
+    ; Click Captcha
+    Click, 55, 520
+    Sleep, 1000
+
+    ;--------------
+    ; Login Antrean BRAVE
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe brave.exe
+    WinMove, ahk_class Chrome_WidgetWin_1 ahk_exe brave.exe,, 580, 0, 580, 1035
+    Send, ^l            
+    Sleep, 1000
+    Send, https://antrean.logammulia.com/login {Enter}
+    Sleep, 2000
+
+    ; reload
+    Send, {F5}
+    Sleep, 1000
+
+    ScrollToEnd()
+
+    ; Click Username
+    Click, 60, 384
+    Sleep, 1000
+
+    ; Select Autofill
+    Click, 160, 450
+    Sleep, 1000
+    ;Click, 60, 430
+    ;Sleep, 500
+
+    ; Click Captcha
+    Click, 55, 530
+    Sleep, 1000
+
+    ; ----------------
+    ; Login Antrean CHROME
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe chrome.exe
+    WinMove, ahk_class Chrome_WidgetWin_1 ahk_exe chrome.exe,, 1150, 0, 580, 1035
+    Send, ^l         
+    Sleep, 1000
+    Send, https://antrean.logammulia.com/login {Enter}
+    Sleep, 2000
+
+    ; reload
+    Send, {F5}
+    Sleep, 1000
+
+    ScrollToEnd()
+
+    ; Click Username
+    Click, 60, 390
+    Sleep, 1000
+
+    ; Select Autofill
+    Click, 160, 450
+    Sleep, 1000
+    ;Click, 60, 450
+    ;Sleep, 1000
+
+    ; Click Captcha
+    Click, 55, 530
+    Sleep, 1000
+
+}
+
+LoginStageTwo() {
+    ; Wait Captcha Resolved
+    Loop {
+       ; EDGE
+       ; -----
+       if (Edgelock) {
+          WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe msedge.exe
+          ScrollToEnd()
+          CoordMode, Pixel, Window
+
+          ; Koordinat captcha login dan value warna
+          PixelGetColor, color, 60, 530, RGB 
+          ;Tooltip, Edge color: %color%
+          if (color = 0xF9F9F9 && Edgelock) {
+             LoginEdge()
+          }
+          Sleep, 500
+       }
+
+       ; BRAVE
+       ; -----
+       if (Bravelock) {
+       WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe brave.exe
+       ScrollToEnd()
+       CoordMode, Pixel, Window
+
+       ; Koordinat captcha login dan value warna
+       PixelGetColor, color, 56, 530, RGB 
+       ;Tooltip, Brave color: %color%
+       if (color = 0x94BEAB && Bravelock) {
+           LoginBrave()
+       }
+       Sleep, 500
+       }
+
+       ; CHROME
+       ; -----
+       if (Chromelock) {
+       WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe chrome.exe
+       ScrollToEnd()
+       CoordMode, Pixel, Window
+
+       ; Koordinat captcha login dan value warna
+       PixelGetColor, color, 56, 536, RGB 
+       ;Tooltip, Chrome color: %color%
+       if (color = 0x94BEAB && Chromelock) {
+           LoginChrome()
+       }
+       Sleep, 500
+       }
+
+       if ( !Edgelock && !Bravelock && !Chromelock) {
+           break
+       }
+    }
+    ;Tooltip, Lock Edge:%Edgelock% Brave:%Bravelock% Chrome:%Chromelock%
+    Sleep, 1000
+}
+
+LoginEdge() {
+    global butik, Pilihan
+    ; Click Log In
+    Click, 130, 995
+    Sleep, 1000
+
+    ; Tombol Menu Antrean
+    Click, 150, 410
+    Sleep, 1000
+
+    ; Klik Pilih Lokasi Butik
+    Click, 150, 350
+    Sleep, 1000
+
+    ; Highlight Butik:
+    ; Bekasi (3)
+    ; Bogor (5)
+    ; Gd Antam (8)
+    ; Graha Dipta (9)
+    ; Butik Setiabudi (17)
+    h := butik.edge[Pilihan].highlight
+    Send, {Down %h%}
+
+    Sleep, 100
+    Send, {Enter}
+
+    ; Klik Tampilkan Butik
+    Click, 150, 400
+    Sleep, 1000
+
+    global Edgelock
+    Edgelock := false
+    Sleep, 1000
+}
+
+LoginBrave() {
+    global butik, Pilihan
+    ; Click Log In
+    Click, 130, 995
+    Sleep, 2000
+    
+    ; Tombol Menu Antrean
+    Click, 150, 410
+    Sleep, 1000
+
+
+    ; Klik Pilih Lokasi Butik
+    Click, 150, 350
+    Sleep, 1000
+
+    ; Highlight Butik:
+    ; Bekasi (3)
+    ; Bogor (5)
+    ; Gd Antam (8)
+    ; Graha Dipta (9)
+    ; Butik Setiabudi (17)
+    h := butik.brave[Pilihan].highlight
+    Send, {Down %h%}
+
+    Sleep, 100
+    Send, {Enter}
+
+    ; Klik Tampilkan Butik
+    Click, 150, 400
+    Sleep, 1000
+
+    global Bravelock
+    Bravelock := false
+    ;Tooltip, Lock Brave: %Bravelock% 
+    Sleep, 1000
+}
+
+LoginChrome() {
+    global butik, Pilihan
+    ; Click Log In
+    Click, 130, 995
+    Sleep, 1000
+    
+    ; Tombol Menu Antrean
+    Click, 150, 410
+    Sleep, 1000
+
+    ; Klik Pilih Lokasi Butik
+    Click, 150, 350
+    Sleep, 1000
+
+    ; Highlight Butik:
+    ; Bekasi (3)
+    ; Bogor (5)
+    ; Gd Antam (8)
+    ; Graha Dipta (9)
+    ; Butik Setiabudi (17)
+    h := butik.chrome[Pilihan].highlight
+    Send, {Down %h%}
+
+    Sleep, 100
+    Send, {Enter}
+
+    ; Klik Tampilkan Butik
+    Click, 150, 400
+    Sleep, 1000
+
+    global Chromelock
+    Chromelock := false
+    Sleep, 1000
+}
+
+
+ScrollToEnd(delay := 500) {
+    Send, {Esc}   ; keluar dari address bar
+    Sleep, %delay%
+    ControlSend,, ^{End}, ahk_class Chrome_WidgetWin_1
+    Sleep, %delay%
+}
+
+WAR:
+; Klik Captcha 58 menit sblm waktu target
+;----------------------------------------
+if (A_Hour = captchaHour && A_Min = captchaMinute && A_Sec = captchaSecond) {
+    global Edgelock     
+    global Bravelock    
+    global Chromelock   
+    Edgelock     := true
+    Bravelock    := true
+    Chromelock   := true
+
+    EdgeWAR := true
+    BraveWAR := true
+    ChromeWAR := true
+
+    ; Klik Captcha EDGE
+    ; -----------------
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe msedge.exe
+    ScrollToEnd()
+
+    ; Klik Pilih Waktu Kedatangan
+    ; Bekasi 150, 710
+    ; Bogor  150, 790
+    ; Gd Antam  150, 750
+    ; Graha Dipta 150, 790
+    ; Setiabudi 150, 790
+    ;Click, 150, 835
+    ;Sleep, 500
+
+    ; Panah bawah sekali + Enter
+    ; semua butik sama
+    ;Send, {Down}{Enter}
+    ;Sleep, 500
+
+    ; Klik Captcha Antrean
+    ; Bekasi  180, 800
+    ; Bogor 180, 870
+    ; Gd Antam  180, 840
+    ; Graha Dipta 180, 870
+    ; Setiabudi  180, 870
+    cx := butik.edge[Pilihan].chaptchax
+    cy := butik.edge[Pilihan].chaptchay
+    Click, %cx%, %cy%
+    Sleep, 500
+
+
+    ; Klik Captcha BRAVE
+    ; ------------------
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe brave.exe
+    ScrollToEnd()
+
+    ; Klik Pilih Waktu Kedatangan
+    ; Bekasi  150, 710
+    ; Bogor  150, 790
+    ; Gd Antam  150, 750
+    ; Graha Dipta 150, 790
+    ; Setiabudi 150, 790
+    ;Click, 150, 790
+    ;Sleep, 500
+
+    ; Panah bawah sekali + Enter
+    ; semua butik sama
+    ;Send, {Down}{Enter}
+    ;Sleep, 500
+
+    ; Klik Captcha Antrean
+    ; Bekasi  180, 800
+    ; Bogor 180, 870
+    ; Gd Antam  180, 840
+    ; Graha Dipta 180, 870
+    ; Setiabudi  180, 870
+    cx := butik.brave[Pilihan].chaptchax
+    cy := butik.brave[Pilihan].chaptchay
+    Click, %cx%, %cy%
+    Sleep, 500
+
+    ; Klik Captcha CHROME
+    ; -------------------
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe chrome.exe
+    ScrollToEnd()
+
+    ; Klik Pilih Waktu Kedatangan
+    ; Bekasi 150, 720
+    ; Bogor  150, 790
+    ; Gd Antam  150, 760
+    ; Graha Dipta 150, 790
+    ; Setiabudi  150, 790
+    ;Click, 150, 790
+    ;Sleep, 500
+
+    ; Panah bawah sekali + Enter
+    ; Semua Butik sama
+    ;Send, {Down}{Enter}
+    ;Sleep, 500
+
+    ; Click Captcha Antrean
+    ; Bekasi  180, 800
+    ; Bogor  180, 880
+    ; Gd Antam  180, 840
+    ; Graha Dipta 180, 870
+    ; Setiabudi 180, 880
+    cx := butik.chrome[Pilihan].chaptchax
+    cy := butik.chrome[Pilihan].chaptchay
+    Click, %cx%, %cy%
+    Sleep, 500
+}
+
+; Klik antrean
+if (A_Hour = targetHour && A_Min = targetMinute && A_Sec = targetSecond) {
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe msedge.exe
+    ScrollToEnd()
+    ; Click Ambil Antrean
+    Click, 285, 930
+    Sleep, 500
+
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe brave.exe
+    ScrollToEnd()
+    ; Click Ambil Antrean
+    Click, 285, 930
+    Sleep, 500
+
+    WinActivate, ahk_class Chrome_WidgetWin_1 ahk_exe chrome.exe
+    ScrollToEnd()
+    ; Click Ambil Antrean
+    Click, 285, 930
+    Sleep, 500
+    ExitApp 
+}
+return
+
+;--------------------------------------------------------
+    </code></pre>
+
+    <p><a href="../index.html">← Kembali ke halaman utama</a></p>
+
+</body>
+</html>
