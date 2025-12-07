@@ -1,80 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Mauritz BG Portfolio</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mauritz BG — Professional Portfolio</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Prism Syntax Highlighting -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-tomorrow.min.css">
+
 <style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background: #f5f5f5;
+/* ---------- BASE STYLE ---------- */
+:root {
+    --bg: #ffffff;
+    --text: #222;
+    --card: #f9f9f9;
+    --header-bg: #1f1f1f;
+    --header-text: #ffffff;
 }
+
+[data-theme="dark"] {
+    --bg: #0d0d0d;
+    --text: #f0f0f0;
+    --card: #1a1a1a;
+    --header-bg: #000;
+    --header-text: #ffffff;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: 0.3s ease;
+}
+
+/* ---------- HEADER ---------- */
 header {
-    background: #262626;
-    color: white;
-    padding: 40px 20px;
+    background: var(--header-bg);
+    color: var(--header-text);
+    padding: 50px 20px;
     text-align: center;
 }
+
+header img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    margin-bottom: 15px;
+}
+
 header h1 {
     margin: 0;
-    font-size: 32px;
+    font-size: 34px;
+    font-weight: 700;
 }
+
+header p {
+    font-size: 16px;
+    opacity: 0.85;
+}
+
+/* ---------- TOGGLE DARK MODE ---------- */
+.toggle-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #444;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* ---------- CONTENT ---------- */
 .container {
     max-width: 900px;
     margin: auto;
     padding: 20px;
 }
+
+/* ---------- SECTION TITLE ---------- */
+h2 {
+    margin-top: 40px;
+    margin-bottom: 15px;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+/* ---------- PROJECT CARDS ---------- */
 .project-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
+
 .card {
-    background: white;
+    background: var(--card);
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    transition: 0.3s ease;
 }
+
 .card:hover {
-    transform: translateY(-4px);
-    transition: 0.3s;
+    transform: translateY(-5px);
 }
+
 .card a {
-    color: #0066cc;
     text-decoration: none;
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 600;
+    color: #0077ff;
 }
+
+/* ---------- SKILLS TAGS ---------- */
+.skill-badge {
+    display: inline-block;
+    background: #0077ff;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    margin: 4px;
+}
+
+/* ---------- FOOTER ---------- */
 footer {
     text-align: center;
-    padding: 20px;
-    color: #777;
+    padding: 25px;
+    opacity: 0.6;
+}
+
+/* Smooth fade-in */
+.fade-in {
+    animation: fadeIn 0.8s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 </style>
 </head>
 
-<body>
+<body class="fade-in">
+
+<button class="toggle-btn" onclick="toggleTheme()">🌙 Dark Mode</button>
 
 <header>
-    <h1>Mauritz BG — Portfolio</h1>
-    <p>Automation • Scripting • OSS/BSS • System Integration</p>
+    <img src="https://avatars.githubusercontent.com/u/10204241042" alt="Mauritz Avatar">
+    <h1>Mauritz BG</h1>
+    <p>Automation • OSS/BSS • System Integration • Solution Architect</p>
 </header>
 
 <div class="container">
 
-    <h2>Projects</h2>
+    <!-- SKILLS -->
+    <h2>Skills</h2>
+    <div>
+        <span class="skill-badge">OSS/BSS Architecture</span>
+        <span class="skill-badge">Automation</span>
+        <span class="skill-badge">Scripting (AHK, YAML, Python)</span>
+        <span class="skill-badge">CI/CD</span>
+        <span class="skill-badge">Cloud & NFV 5G</span>
+        <span class="skill-badge">System Integration</span>
+        <span class="skill-badge">API Design</span>
+        <span class="skill-badge">Telecom NMS/ENM/ENIQ</span>
+    </div>
 
+    <!-- EXPERIENCE -->
+    <h2>Experience</h2>
+    <p>
+        Solution Architect dengan pengalaman 18+ tahun di OSS/BSS/NMS,  
+        modernisasi OSS untuk operator besar di Indonesia,  
+        integrasi multi-vendor (Ericsson, Huawei, Cisco, Juniper),  
+        dan automation scripting untuk operasional harian.
+    </p>
+
+    <!-- PROJECTS -->
+    <h2>Projects</h2>
     <div class="project-list">
 
         <div class="card">
             <a href="projects/AutoWarANTAM.html">AutoWarANTAM.ahk</a>
-            <p>Script AutoHotkey v1 otomatis untuk war antrian butik ANTAM.</p>
+            <p>Script AutoHotkey otomatis untuk war antrian butik ANTAM.</p>
         </div>
 
         <div class="card">
             <a href="projects/freerdp.html">FreeRDP.yaml</a>
-            <p>Script YAML untuk mendapatkan akses RDP gratis dari github runner.</p>
+            <p>Script YAML untuk mendapatkan RDP gratis dari GitHub Runner.</p>
         </div>
 
     </div>
@@ -82,8 +201,22 @@ footer {
 </div>
 
 <footer>
-    &copy; 2025 Mauritz BG — GitHub Pages Portfolio
+    © 2025 Mauritz BG — Professional Portfolio
 </footer>
+
+<!-- PrismJS -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-autoit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-yaml.min.js"></script>
+
+<!-- Dark Mode Toggle -->
+<script>
+function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme");
+    const newTheme = current === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", newTheme);
+}
+</script>
 
 </body>
 </html>
